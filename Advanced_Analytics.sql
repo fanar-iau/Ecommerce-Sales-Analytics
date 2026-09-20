@@ -32,3 +32,28 @@ SELECT
 
 FROM CustomerSalesSummary  
 ORDER BY Customer_Rank; -- ترتيب النتيجة النهائية حسب المركز
+
+WITH MonthlySales AS (
+    SELECT 
+        DATE_FORMAT(o.OrderDate, '%Y-%m') AS SalesMonth, -- year and month only
+        SUM(o.Quantity * p.Price) AS TotalSales
+    FROM Orders o
+    JOIN Products p ON o.ProductID = p.ProductID 
+    GROUP BY DATE_FORMAT(o.OrderDate, '%Y-%m')
+)
+SELECT 
+    SalesMonth,
+    
+    -- مبيعات الشهر السابق
+    LAG(TotalSales) OVER (ORDER BY SalesMonth) AS Previous_Month_Sales,
+    
+    -- مبيعات الشهر الحالي
+    TotalSales AS Current_Month_Sales,
+    
+    -- مبيعات الشهر القادم
+    LEAD(TotalSales) OVER (ORDER BY SalesMonth) AS Next_Month_Sales,
+    
+    -- فارق المبيعات مع الشهر السابق
+    TotalSales - LAG(TotalSales) OVER (ORDER BY SalesMonth) AS Difference_From_Previous 
+
+FROM MonthlySales; -- CTE NAME
