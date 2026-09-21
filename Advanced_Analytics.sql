@@ -52,8 +52,37 @@ SELECT
     
     -- مبيعات الشهر القادم
     LEAD(TotalSales) OVER (ORDER BY SalesMonth) AS Next_Month_Sales,
-    
+
     -- فارق المبيعات مع الشهر السابق
-    TotalSales - LAG(TotalSales) OVER (ORDER BY SalesMonth) AS Difference_From_Previous 
+    TotalSales - LAG(TotalSales) OVER (ORDER BY SalesMonth) AS Difference_From_Previous,
+
+    -- حالة المبيعات (ربح أو خسارة)
+    CASE 
+        WHEN TotalSales - LAG(TotalSales) OVER (ORDER BY SalesMonth) > 0 THEN 'Profit'
+        WHEN TotalSales - LAG(TotalSales) OVER (ORDER BY SalesMonth) < 0 THEN 'Loss'
+        WHEN TotalSales - LAG(TotalSales) OVER (ORDER BY SalesMonth) = 0 THEN 'No Change'
+        ELSE 'No Previous Month'
+    END AS Sales_Status -- اسم العامود 
 
 FROM MonthlySales; -- CTE NAME
+
+WITH MonthlyProductSales AS (
+    SELECT 
+        DATE_FORMAT(o.OrderDate, '%Y-%m') AS SalesMonth,
+        p.ProductName,
+        SUM(o.Quantity * p.Price) AS TotalProductSales
+    FROM Orders o
+    JOIN Products p ON o.ProductID = p.ProductID
+    GROUP BY DATE_FORMAT(o.OrderDate, '%Y-%m'), p.ProductName
+)
+SELECT 
+    SalesMonth,
+    ProductName,
+    TotalProductSales,
+    
+    -- ترتيب المنتج داخل الشهر المحدد
+    DENSE_RANK() OVER (
+            PARTITION BY SalesMonth --  يفصل كل شهر عن الثاني كل شهر الحاله يعني ترتيب حسب الشهر ل شهر لوحده 
+            ORDER BY TotalProductSales DESC -- اخل كل شهر، رتب المنتجات من أكثر منتج مبيعًا إلى أقل منتج م 
+            ) AS Product_Rank_In_Month
+FROM MonthlyProductSales;
