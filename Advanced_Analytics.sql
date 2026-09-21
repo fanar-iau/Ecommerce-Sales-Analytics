@@ -86,3 +86,39 @@ SELECT
             ORDER BY TotalProductSales DESC -- اخل كل شهر، رتب المنتجات من أكثر منتج مبيعًا إلى أقل منتج م 
             ) AS Product_Rank_In_Month
 FROM MonthlyProductSales;
+-- =============================================
+-- Customer Ranking & Segmentation Analysis
+-- تحليل ترتيب العملاء وتقسيمهم إلى فئات بناءً على المبيعات
+-- =============================================
+
+-- 1. إنشاء جدول مؤقت (CTE) لحساب إجمالي مشتريات كل عميل
+WITH CustomerSalesSummary AS (
+    SELECT 
+        c.CustomerID,                           -- رقم العميل الفريد
+        SUM(o.Quantity * p.Price) AS TotalSpent -- حساب إجمالي المبلغ المنسوب للعميل (الكمية × السعر)
+    FROM Orders o
+    JOIN Customers c ON o.CustomerID = c.CustomerID -- ربط جدول الطلبات بجدول العملاء
+    JOIN Products p ON o.ProductID = p.ProductID    -- ربط جدول الطلبات بجدول المنتجات للحصول على السعر
+    GROUP BY c.CustomerID                      -- تجميع البيانات حسب كل عميل على حدة
+)
+
+-- 2. الاستعلام الرئيسي لتطبيق ترتيب وتقسيم العملاء
+SELECT 
+    CustomerID,
+    TotalSpent,
+    
+    -- ترتيب العملاء تنازلياً حسب إجمالي الإنفاق (الأعلى إنفاقاً يأخذ المركز 1)
+    -- استخدام DENSE_RANK يضمن عدم قفز الأرقام في حال وجود تعادل
+    DENSE_RANK() OVER (ORDER BY TotalSpent DESC) AS Customer_Rank,
+    
+    -- تقسيم العملاء إلى شرائح وفئات تسويقية بناءً على حجم إنفاقهم
+    CASE 
+        WHEN TotalSpent >= 7000 THEN 'VIP'       -- العملاء الأكثر إنفاقاً (فئة VIP)
+        WHEN TotalSpent >= 2000 THEN 'Regular'   -- العملاء بإنفاق متوسط (فئة الاعتياديين)
+        ELSE 'Basic'                             -- باقي العملاء بإنفاق محدود (الفئة الأساسية)
+    END AS Customer_Segment
+
+FROM CustomerSalesSummary -- الاستعلام من الجدول المؤقت الذي أنشأناه بالtop
+
+-- ترتيب المخرجات في الجدول النهائي بداية من العميل صاحب المركز الأول
+ORDER BY Customer_Rank;
