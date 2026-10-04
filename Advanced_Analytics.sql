@@ -90,14 +90,14 @@ FROM MonthlyProductSales;
 -- Customer Ranking & Segmentation Analysis
 -- تحليل ترتيب العملاء وتقسيمهم إلى فئات بناءً على المبيعات
 -- =============================================
-
+-- Table.Column 
 -- 1. إنشاء جدول مؤقت (CTE) لحساب إجمالي مشتريات كل عميل
 WITH CustomerSalesSummary AS (
     SELECT 
-        c.CustomerID,                           -- رقم العميل الفريد
+        c.CustomerID,                           --  الكستمر ID في جدول الكستمر  
         SUM(o.Quantity * p.Price) AS TotalSpent -- حساب إجمالي المبلغ المنسوب للعميل (الكمية × السعر)
     FROM Orders o
-    JOIN Customers c ON o.CustomerID = c.CustomerID -- ربط جدول الطلبات بجدول العملاء
+    JOIN Customers c ON o.CustomerID = c.CustomerID -- ربط جدول الطلبات بجدول العملاء  -- Orders.CustomerID = Customers.CustomerID
     JOIN Products p ON o.ProductID = p.ProductID    -- ربط جدول الطلبات بجدول المنتجات للحصول على السعر
     GROUP BY c.CustomerID                      -- تجميع البيانات حسب كل عميل على حدة
 )
@@ -122,3 +122,29 @@ FROM CustomerSalesSummary -- الاستعلام من الجدول المؤقت �
 
 -- ترتيب المخرجات في الجدول النهائي بداية من العميل صاحب المركز الأول
 ORDER BY Customer_Rank;
+
+-- =====================================================
+-- 4. حساب المتوسط المتحرك لمبيعات 3 أشهر (3-Month Moving Average)
+-- الغرض: تنعيم التذبذبات الشهرية وكشف الاتجاه العام للمبيعات (Trend)
+-- =====================================================
+
+WITH MonthlyTotals AS (
+    -- الخطوة الأولى: حساب إجمالي مبيعات كل شهر عبر ضرب الكمية في السعر
+    SELECT 
+        DATE_FORMAT(o.OrderDate, '%Y-%m') AS SalesMonth,
+        SUM(o.Quantity * p.Price) AS MonthlySales -- هنا نحسب مبيعات الشهر 
+    FROM Orders o
+    JOIN Products p ON o.ProductID = p.ProductID
+    GROUP BY DATE_FORMAT(o.OrderDate, '%Y-%m') -- مبيعات كل شهر مع بعض 
+)
+SELECT 
+    SalesMonth,
+    MonthlySales,
+    
+    -- الخطوة الثانية: حساب متوسط الشهر الحالي مع الشهرين السابقين له
+    AVG(MonthlySales) OVER (
+        ORDER BY SalesMonth 
+        ROWS BETWEEN 2 PRECEDING AND CURRENT ROW -- خذ صفين قبلي + الصف الحالي. 
+    ) AS MovingAvg_3Months
+
+FROM MonthlyTotals; 
