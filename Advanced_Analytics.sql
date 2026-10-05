@@ -148,3 +148,12 @@ SELECT
     ) AS MovingAvg_3Months
 
 FROM MonthlyTotals; 
+
+SELECT 
+    p.ProductID,
+    p.ProductName,
+    -- استخدام COALESCE لضمان إرجاع 0 بدلاً من NULL إذا لم تكن هناك مبيعات للمنتج
+    COALESCE(SUM(o.Quantity * p.Price), 0) AS TotalRevenue -- اذا في ربح حطه ما في حط لي صفر بدل النل 
+FROM Products p
+LEFT JOIN Orders o ON p.ProductID = o.ProductID
+GROUP BY p.ProductID, p.ProductName;
