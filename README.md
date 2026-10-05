@@ -1,26 +1,42 @@
-# E-Commerce Sales & Performance Analytics
+# E-Commerce Sales & Performance Analytics (MySQL & Power BI)
 
-## Project Overview
-This project delivers an end-to-end sales performance analysis for an E-Commerce business using MySQL and Power BI. The goal is to transform raw transactional data into actionable business insights, evaluate customer purchasing patterns, and track key revenue drivers through standard analytics queries and interactive dashboards.
+## 📌 Executive Summary
+This repository contains an end-to-end data analytics project focused on evaluating e-commerce performance. Using **MySQL Workbench**, the dataset was structured, cleaned, and queried to perform both foundational aggregations and advanced statistical analytics (such as moving averages, rankings using Window Functions, and null-handling techniques). 
 
-## Architecture & Database Schema
-The project uses a normalized relational database schema in MySQL consisting of three core entities:
-* **Customers:** Demographic and contact details.
-* **Products:** Product items and pricing structures.
-* **Orders:** Transactional sales records linking customers to purchased items.
+The output from this relational database serves as the foundation for interactive visual dashboards built in **Power BI** to deliver actionable insights on revenue trends, customer lifetime values, and product performance.
 
-## Analytics & Technical Implementation
-* **Data Cleaning & Validation:** Handled null values, verified data types, and maintained referential integrity across foreign keys.
-* **Complex Joins & Aggregations:** Multi-table relational queries calculating overall revenue, item quantities, and average transaction values.
-* **Common Table Expressions (CTEs):** Structured modular queries to prepare data summaries for reporting layers.
-* **Advanced Window Functions:** Applied `DENSE_RANK()` for customer spend rankings and `LAG()` for evaluating order history trends.
-* **Conditional Logic:** Utilized `CASE` statements for customer segmentation.
+---
 
-## Repository Structure
-* `SQL_Queries.sql`: Base queries, joins, views, and aggregations.
-* `Advanced_Analytics.sql`: CTEs, Window Functions (`DENSE_RANK`, `LAG`), and complex logic.
-* `01_View_Tables.sql`: Table displays and schema inspection.
-* `cleaned_sales_data.csv`: Source dataset used for analytics.
+## 🛠️ Tech Stack & Key Technologies
+* **Database Management System:** MySQL Workbench 8.0
+* **Querying Language:** Advanced SQL (CTEs, Window Functions, Aggregations, Joins, Null Handling)
+* **Visualization Tool:** Microsoft Power BI
+* **Version Control:** Git & GitHub
 
-## Status
-**In Progress** — SQL analytics layers completed; Power BI data modeling, DAX measure creation, and dashboard design underway.
+---
+
+## 📂 Project Structure & SQL Implementation
+
+### 1. Database Schema & Data Modeling
+* Designed and established normalized relational tables: `Customers`, `Products`, and `Orders`.
+* Primary keys and foreign keys were configured to preserve entity integrity and enable efficient multi-table JOIN operations.
+
+### 2. Core SQL Queries & Business Logic
+* **Data Aggregation & Joining:** Analyzed total sales per customer and revenue per product category using `INNER JOIN` and `LEFT JOIN` clauses.
+* **Window Functions & Ranking:** Executed `ROW_NUMBER()` and `DENSE_RANK()` over ordered partitions to identify top-performing customers and best-selling products.
+* **Common Table Expressions (CTEs):** Structured complex logic into readable, reusable subqueries for multi-step analytics.
+* **Time-Series Analysis (Moving Averages):** Calculated 3-month moving averages using `AVG() OVER (ORDER BY ... ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)` to smooth out seasonal fluctuations and detect overall sales trends.
+* **Data Integrity & Null Handling:** Implemented `COALESCE()` to eliminate `NULL` outputs in aggregation queries, ensuring consistent zero-value reporting for unsold inventory.
+
+---
+
+## 📊 Analytics Highlights & Insights
+1. **Sales Trend Smoothing:** Identified underlying quarterly momentum by mitigating short-term monthly revenue spikes via moving average models.
+2. **Customer Segmentation:** Ranked top-tier clients based on aggregate spend to support targeted loyalty initiatives.
+3. **Product Revenue Contribution:** Evaluated product category yields to highlight underperforming products and high-margin leaders.
+
+---
+
+## 🚀 Future Enhancements & Power BI Integration
+* Integration with **Power BI** to build interactive visual charts, measure DAX metrics, and facilitate real-time monitoring.
+* Implementation of dynamic date tables for advanced time-intelligence capabilities.
